@@ -5,7 +5,7 @@
 ![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen)
 ![Last Commit](https://img.shields.io/github/last-commit/aws-samples/serverless-patterns)
 
-![Kinesis-Lambda-CloudWatch](/kinesis-lambda-cloudwatch.png)
+![Kinesis-Lambda-CloudWatch](/Screenshots/Kinesis-Lambda-CloudWatch.jpeg)
 
 This pattern creates an AWS Kinesis Data Stream, a stream consumer, and an AWS Lambda function. When data is added to the stream, the Lambda function is invoked.
 
