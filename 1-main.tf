@@ -1,11 +1,4 @@
-resource "aws_kinesis_stream" "kinesis_stream" {
-  name             = "kinesis-stream"
-  shard_count      = 1
-  retention_period = 24
-}
-
 # Archive a file to be used with Lambda using consistent file mode
-
 data "archive_file" "lambda_my_function" {
   type             = "zip"
   source_file      = "${path.module}/src/app.js"
@@ -13,6 +6,14 @@ data "archive_file" "lambda_my_function" {
   output_path      = "${path.module}/src/kinesis.zip"
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kinesis_stream
+resource "aws_kinesis_stream" "kinesis_stream" {
+  name             = "kinesis-stream"
+  shard_count      = 1
+  retention_period = 24
+}
+
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_function
 resource "aws_lambda_function" "kinesis_lambda" {
   filename         = data.archive_file.lambda_my_function.output_path
   source_code_hash = data.archive_file.lambda_my_function.output_base64sha256
@@ -23,6 +24,7 @@ resource "aws_lambda_function" "kinesis_lambda" {
   depends_on       = [data.archive_file.lambda_my_function]
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role
 resource "aws_iam_role" "lambda_role" {
   name = "lambda-role"
   assume_role_policy = jsonencode({
@@ -39,6 +41,7 @@ resource "aws_iam_role" "lambda_role" {
   })
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy
 resource "aws_iam_role_policy" "lambda_kinesis_access" {
   name = "lambda-kinesis-policy"
   role = aws_iam_role.lambda_role.id
@@ -65,12 +68,14 @@ resource "aws_iam_role_policy" "lambda_kinesis_access" {
   })
 }
 
+# https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lambda_event_source_mapping
 resource "aws_lambda_event_source_mapping" "kinesis_mapping" {
   event_source_arn  = aws_kinesis_stream.kinesis_stream.arn
   function_name     = aws_lambda_function.kinesis_lambda.arn
   starting_position = "LATEST"
 }
 
+# Outputs for the Kinesis stream and Lambda function
 output "kinesis_data_stream" {
   value       = aws_kinesis_stream.kinesis_stream.arn
   description = "Kinesis data stream with shards"
